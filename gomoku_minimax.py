@@ -1,6 +1,7 @@
 from IPython.display import clear_output
 import random, copy
 
+from board_utils import is_empty
 from gomoku_model import GomokuAI
 
 DEEP_MAX = 2  # độ sâu tìm kiếm
@@ -23,8 +24,6 @@ class GomokuMinimax(GomokuAI):
     # thì hàm sẽ trả về list có 8 phần tử là các ô xung quanh
     def generate_move(self, board) -> list:
         possible_moves = []
-        imax, jmax = len(board), len(board[0])
-        # board = [[board[i][j] for j in range(jmax)] for i in range(imax)]
         # duyệt cả bàn cờ
         for row in range(SIZE):
             for col in range(SIZE):
@@ -333,9 +332,9 @@ class GomokuMinimax(GomokuAI):
         return best_move
 
     # hàm tính nước đi cho máy 
-    def calculate_move(self, board) -> tuple:
+    def calculate_move(self, board):
         # nếu bàn cờ rỗng thì trả về nước ngẫu nhiên
-        if sum([sum(row) for row in board]) == 0:
+        if is_empty(board):
             padding = 1
             move = [random.randint(padding, len(board) - 1 - padding),
                     random.randint(padding, len(board[0]) - 1 - padding),

@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QPu
     QLineEdit, QComboBox, QSpinBox, QMessageBox
 
 from board_utils import check_board_status
+from gomoku_mcts import GomokuMCTS
 from gomoku_minimax import GomokuMinimax
 from gomoku_model import Human, GomokuAI
 
@@ -14,6 +15,7 @@ symbols = {
     X: 'X',
     O: 'O'
 }
+DEFAULT_BOARD_SIZE = 12
 
 
 # semaphore = QSemaphore(1)
@@ -212,7 +214,7 @@ class NewGameMenu(QWidget):
         board_size_label = QLabel('Board size')
         self.board_size_field = QSpinBox()
         self.board_size_field.setRange(5, 25)
-        self.board_size_field.setValue(15)
+        self.board_size_field.setValue(DEFAULT_BOARD_SIZE)
         layout.addRow(board_size_label, self.board_size_field)
 
         player1_label = QLabel('Player 1')
@@ -294,11 +296,13 @@ class NewGameMenu(QWidget):
             max_depth = self.minimax_depth_field_1.value()
             data['player1'] = GomokuMinimax(board_size, X, max_depth)
         else:
-            message_box = QMessageBox()
-            message_box.setText(f'Player {self.player1_field.currentText()} is currently not supported')
-            message_box.setIcon(QMessageBox.Information)
-            message_box.exec_()
-            return
+            # message_box = QMessageBox()
+            # message_box.setText(f'Player {self.player1_field.currentText()} is currently not supported')
+            # message_box.setIcon(QMessageBox.Information)
+            # message_box.exec_()
+            # return
+            thinking_time = self.mcts_thinking_time_field_1.value()
+            data['player1'] = GomokuMCTS(X, thinking_time)
 
         player2_index = self.player2_field.currentIndex()
         if player2_index == 0:
@@ -307,11 +311,13 @@ class NewGameMenu(QWidget):
             max_depth = self.minimax_depth_field_2.value()
             data['player2'] = GomokuMinimax(board_size, O, max_depth)
         else:
-            message_box = QMessageBox()
-            message_box.setText(f'Player {self.player2_field.currentText()} is currently not supported')
-            message_box.setIcon(QMessageBox.Information)
-            message_box.exec_()
-            return
+            # message_box = QMessageBox()
+            # message_box.setText(f'Player {self.player2_field.currentText()} is currently not supported')
+            # message_box.setIcon(QMessageBox.Information)
+            # message_box.exec_()
+            # return
+            thinking_time = self.mcts_thinking_time_field_2.value()
+            data['player2'] = GomokuMCTS(O, thinking_time)
 
         print(data)
         self.submitted.emit(data)
@@ -322,7 +328,9 @@ class Game(QWidget):
     def __init__(self):
         super().__init__()
         self.new_game_menu = None
-        self.game_board = GameBoard(15, Human(), GomokuMinimax(15, O), self)
+        self.game_board = GameBoard(DEFAULT_BOARD_SIZE,
+                                    GomokuMCTS(X, thinking_time=5000),
+                                    GomokuMinimax(DEFAULT_BOARD_SIZE, O), self)
         self.prompt = None
         self.player_labels = None
         self.setWindowTitle('Gomoku')
