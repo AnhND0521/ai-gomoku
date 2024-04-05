@@ -1,14 +1,17 @@
 from IPython.display import clear_output
-import random
+import random, copy
+
+from gomoku_model import GomokuAI
 
 DEEP_MAX = 2  # độ sâu tìm kiếm
 WINNING_SCORE = 10 ** 10  # điểm thắng cuộc
 
 
-class GomokuMinimax:
+class GomokuMinimax(GomokuAI):
     def __init__(self, board_size, bot_mark):
         self.SIZE = board_size
         self.bot_mark = bot_mark
+        self.name = 'MINIMAX'
         print('init minimax player of', ['', 'X', 'O'][bot_mark])
 
     # hàm này sẽ trả về một list là các nước đi cạnh những ô đã được đánh rồi
@@ -16,6 +19,8 @@ class GomokuMinimax:
     # thì hàm sẽ trả về list có 8 phần tử là các ô xung quanh
     def generate_move(self, board) -> list:
         possible_moves = []
+        imax, jmax = len(board), len(board[0])
+        board = [[board[i][j] for j in range(jmax)] for i in range(imax)]
         # duyệt cả bàn cờ
         for row in range(self.SIZE):
             for col in range(self.SIZE):
