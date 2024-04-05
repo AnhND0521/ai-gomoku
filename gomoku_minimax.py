@@ -5,13 +5,17 @@ from gomoku_model import GomokuAI
 
 DEEP_MAX = 2  # độ sâu tìm kiếm
 WINNING_SCORE = 10 ** 10  # điểm thắng cuộc
+SIZE = 15
 
 
 class GomokuMinimax(GomokuAI):
-    def __init__(self, board_size, bot_mark):
-        self.SIZE = board_size
+    def __init__(self, board_size, bot_mark, max_depth=2):
         self.bot_mark = bot_mark
         self.name = 'MINIMAX'
+        global SIZE
+        SIZE = board_size
+        global DEEP_MAX
+        DEEP_MAX = max_depth
         print('init minimax player of', ['', 'X', 'O'][bot_mark])
 
     # hàm này sẽ trả về một list là các nước đi cạnh những ô đã được đánh rồi
@@ -20,10 +24,10 @@ class GomokuMinimax(GomokuAI):
     def generate_move(self, board) -> list:
         possible_moves = []
         imax, jmax = len(board), len(board[0])
-        board = [[board[i][j] for j in range(jmax)] for i in range(imax)]
+        # board = [[board[i][j] for j in range(jmax)] for i in range(imax)]
         # duyệt cả bàn cờ
-        for row in range(self.SIZE):
-            for col in range(self.SIZE):
+        for row in range(SIZE):
+            for col in range(SIZE):
                 # nếu ô hiện tại đã đánh rồi, bỏ qua
                 if board[row][col] > 0:
                     continue
@@ -33,16 +37,16 @@ class GomokuMinimax(GomokuAI):
                     if col > 0:
                         if board[row - 1][col - 1] > 0 or board[row][col - 1] > 0:
                             possible_moves.append((row, col))
-                    if col < self.SIZE - 1:
+                    if col < SIZE - 1:
                         if board[row - 1][col + 1] > 0 or board[row][col + 1] > 0:
                             possible_moves.append((row, col))
                     if board[row - 1][col] > 0:
                         possible_moves.append((row, col))
-                if row < self.SIZE - 1:
+                if row < SIZE - 1:
                     if col > 0:
                         if board[row + 1][col - 1] > 0 or board[row][col - 1] > 0:
                             possible_moves.append((row, col))
-                    if col < self.SIZE - 1:
+                    if col < SIZE - 1:
                         if board[row + 1][col + 1] > 0 or board[row][col + 1] > 0:
                             possible_moves.append((row, col))
                     if board[row + 1][col] > 0:
@@ -154,9 +158,9 @@ class GomokuMinimax(GomokuAI):
     # eval = [consecutive, blocked_side, score] (số ô cờ liên tiếp, số bên bị chặn, điểm số) 
     def evaluate_row(self, board, is_bot, is_bot_turn) -> int:
         eval = [0, 2, 0, 0, 0]
-        for row in range(self.SIZE):
+        for row in range(SIZE):
             prepos = 0
-            for col in range(self.SIZE):
+            for col in range(SIZE):
                 self.evaluate_position(board, row, col, is_bot, is_bot_turn, eval, prepos)
                 prepos = board[row][col]
                 # sau khi kết thúc một hàng, cần xem là có thể đánh giá được nốt không (trường hợp đầu tiên của hàm evaluate_position)
@@ -173,9 +177,9 @@ class GomokuMinimax(GomokuAI):
     # eval = [consecutive, blocked_side, score] (số ô cờ liên tiếp, số bên bị chặn, điểm số) 
     def evaluate_col(self, board, is_bot, is_bot_turn) -> int:
         eval = [0, 2, 0, 0, 0]
-        for col in range(self.SIZE):
+        for col in range(SIZE):
             prepos = 0
-            for row in range(self.SIZE):
+            for row in range(SIZE):
                 self.evaluate_position(board, row, col, is_bot, is_bot_turn, eval, prepos)
                 prepos = board[row][col]
                 # sau khi kết thúc một cột, cần xem là có thể đánh giá được nốt không (trường hợp đầu tiên của hàm evaluate_position)
@@ -192,9 +196,9 @@ class GomokuMinimax(GomokuAI):
     # eval = [consecutive, blocked_side, score] (số ô cờ liên tiếp, số bên bị chặn, điểm số) 
     def evaluate_diagonal(self, board, is_bot, is_bot_turn) -> int:
         eval = [0, 2, 0, 0, 0]
-        for i in range(2 * self.SIZE - 1):
-            start = max(0, i - self.SIZE + 1)
-            end = min(self.SIZE - 1, i)
+        for i in range(2 * SIZE - 1):
+            start = max(0, i - SIZE + 1)
+            end = min(SIZE - 1, i)
             prepos = 0
             for j in range(start, end + 1):
                 self.evaluate_position(board, j, j - i, is_bot, is_bot_turn, eval, prepos)
@@ -209,9 +213,9 @@ class GomokuMinimax(GomokuAI):
             eval[1] = 2
             eval[3] = 0
 
-        for i in range(1 - self.SIZE, self.SIZE):
+        for i in range(1 - SIZE, SIZE):
             start = max(0, i)
-            end = min(self.SIZE + i - 1, self.SIZE - 1)
+            end = min(SIZE + i - 1, SIZE - 1)
             prepos = 0
             for j in range(start, end + 1):
                 self.evaluate_position(board, j, i - j, is_bot, is_bot_turn, eval, prepos)
@@ -356,13 +360,13 @@ class GomokuMinimax(GomokuAI):
     # hàm in bàn cờ 
     def print_board(self, board):
         print('  ', end='')
-        for i in range(self.SIZE):
+        for i in range(SIZE):
             print((i + 1) % 10, end=' ')
         print(*['', ' '], sep='\n', end='')
-        print((2 * self.SIZE + 1) * "-")
-        for i in range(self.SIZE):
+        print((2 * SIZE + 1) * "-")
+        for i in range(SIZE):
             print(*[(i + 1) % 10, "|"], sep='', end='')
-            for j in range(self.SIZE):
+            for j in range(SIZE):
                 if board[i][j] == 0:
                     print(" ", end='|')
                 elif board[i][j] == 1:
@@ -370,13 +374,13 @@ class GomokuMinimax(GomokuAI):
                 else:
                     print("O", end='|')
             print(*['', ' '], sep='\n', end='')
-            print((2 * self.SIZE + 1) * "-")
+            print((2 * SIZE + 1) * "-")
         print()
 
     def run(self):
         # khởi tạo một số dữ liệu
         # board[x][y] == 1 nếu là người chơi, == 2 nếu là máy
-        board = [[0 for i in range(self.SIZE)] for j in range(self.SIZE)]
+        board = [[0 for i in range(SIZE)] for j in range(SIZE)]
         game_complete = False
         player_turn = True
         cur_score = 0
@@ -404,7 +408,7 @@ class GomokuMinimax(GomokuAI):
                 except:
                     print("Sai lệnh!")
                     continue
-                if x < 1 or x > self.SIZE or y < 1 or y > self.SIZE:
+                if x < 1 or x > SIZE or y < 1 or y > SIZE:
                     print("Vị trí ngoài phạm vi, hãy thử lại!")
                     continue
                 if board[x - 1][y - 1] != 0:

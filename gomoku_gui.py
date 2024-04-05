@@ -1,8 +1,9 @@
 import sys
 
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QObject, QMutex, QSemaphore
-from PyQt5.QtGui import QPainter, QColor, QPen, QFont
-from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QPushButton, QLabel
+from PyQt5.QtGui import QPainter, QColor, QPen, QFont, QIntValidator
+from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QPushButton, QLabel, QFormLayout, \
+    QLineEdit, QComboBox, QSpinBox, QMessageBox
 
 from board_utils import check_board_status
 from gomoku_minimax import GomokuMinimax
@@ -142,7 +143,7 @@ class GameBoard(QWidget):
         self.board[i][j] = self.turn
         self.repaint()
         self.toggle_turn()
-        if isinstance(self.players[self.turn], GomokuAI):
+        if self.turn > 0 and isinstance(self.players[self.turn], GomokuAI):
             self.handle_bot()
 
     def handle_bot(self):
@@ -200,10 +201,128 @@ class GameBoard(QWidget):
 FONT_FAMILY = 'Segoe UI'
 
 
+class NewGameMenu(QWidget):
+    submitted = pyqtSignal(dict)
+
+    def __init__(self):
+        super().__init__()
+        layout = QFormLayout()
+        self.setLayout(layout)
+
+        board_size_label = QLabel('Board size')
+        self.board_size_field = QSpinBox()
+        self.board_size_field.setRange(5, 25)
+        self.board_size_field.setValue(15)
+        layout.addRow(board_size_label, self.board_size_field)
+
+        player1_label = QLabel('Player 1')
+        self.player1_field = QComboBox()
+        self.player1_field.addItems(['Human', 'Minimax', 'MCTS'])
+        self.player1_field.currentIndexChanged.connect(self.on_player1_changed)
+        layout.addRow(player1_label, self.player1_field)
+
+        self.minimax_depth_label_1 = QLabel('Depth')
+        self.minimax_depth_label_1.setVisible(False)
+        self.minimax_depth_field_1 = QSpinBox()
+        self.minimax_depth_field_1.setRange(1, 5)
+        self.minimax_depth_field_1.setValue(2)
+        self.minimax_depth_field_1.setVisible(False)
+        layout.addRow(self.minimax_depth_label_1, self.minimax_depth_field_1)
+
+        self.mcts_thinking_time_label_1 = QLabel('Thinking time (ms)')
+        self.mcts_thinking_time_label_1.setVisible(False)
+        self.mcts_thinking_time_field_1 = QSpinBox()
+        self.mcts_thinking_time_field_1.setRange(1, 1000000)
+        self.mcts_thinking_time_field_1.setValue(2000)
+        self.mcts_thinking_time_field_1.setVisible(False)
+        layout.addRow(self.mcts_thinking_time_label_1, self.mcts_thinking_time_field_1)
+
+        player2_label = QLabel('Player 2')
+        self.player2_field = QComboBox()
+        self.player2_field.addItems(['Human', 'Minimax', 'MCTS'])
+        self.player2_field.currentIndexChanged.connect(self.on_player2_changed)
+        layout.addRow(player2_label, self.player2_field)
+
+        self.minimax_depth_label_2 = QLabel('Depth')
+        self.minimax_depth_label_2.setVisible(False)
+        self.minimax_depth_field_2 = QSpinBox()
+        self.minimax_depth_field_2.setRange(1, 5)
+        self.minimax_depth_field_2.setValue(2)
+        self.minimax_depth_field_2.setVisible(False)
+        layout.addRow(self.minimax_depth_label_2, self.minimax_depth_field_2)
+
+        self.mcts_thinking_time_label_2 = QLabel('Thinking time (ms)')
+        self.mcts_thinking_time_label_2.setVisible(False)
+        self.mcts_thinking_time_field_2 = QSpinBox()
+        self.mcts_thinking_time_field_2.setRange(1, 1000000)
+        self.mcts_thinking_time_field_2.setValue(2000)
+        self.mcts_thinking_time_field_2.setVisible(False)
+        layout.addRow(self.mcts_thinking_time_label_2, self.mcts_thinking_time_field_2)
+
+        self.start_button = QPushButton('Start')
+        self.start_button.clicked.connect(self.on_start_button_clicked)
+        layout.addRow(self.start_button)
+
+        self.setWindowTitle('New Game')
+        self.setMinimumWidth(300)
+        self.show()
+
+    def on_player1_changed(self, index):
+        self.minimax_depth_label_1.setVisible(index == 1)
+        self.minimax_depth_field_1.setVisible(index == 1)
+        self.mcts_thinking_time_label_1.setVisible(index == 2)
+        self.mcts_thinking_time_field_1.setVisible(index == 2)
+
+    def on_player2_changed(self, index):
+        self.minimax_depth_label_2.setVisible(index == 1)
+        self.minimax_depth_field_2.setVisible(index == 1)
+        self.mcts_thinking_time_label_2.setVisible(index == 2)
+        self.mcts_thinking_time_field_2.setVisible(index == 2)
+
+    def on_start_button_clicked(self):
+        board_size = int(self.board_size_field.text())
+        data = {
+            'board_size': board_size,
+            'player1': None,
+            'player2': None
+        }
+
+        player1_index = self.player1_field.currentIndex()
+        if player1_index == 0:
+            data['player1'] = Human()
+        elif player1_index == 1:
+            max_depth = self.minimax_depth_field_1.value()
+            data['player1'] = GomokuMinimax(board_size, X, max_depth)
+        else:
+            message_box = QMessageBox()
+            message_box.setText(f'Player {self.player1_field.currentText()} is currently not supported')
+            message_box.setIcon(QMessageBox.Information)
+            message_box.exec_()
+            return
+
+        player2_index = self.player2_field.currentIndex()
+        if player2_index == 0:
+            data['player2'] = Human()
+        elif player2_index == 1:
+            max_depth = self.minimax_depth_field_2.value()
+            data['player2'] = GomokuMinimax(board_size, O, max_depth)
+        else:
+            message_box = QMessageBox()
+            message_box.setText(f'Player {self.player2_field.currentText()} is currently not supported')
+            message_box.setIcon(QMessageBox.Information)
+            message_box.exec_()
+            return
+
+        print(data)
+        self.submitted.emit(data)
+        self.hide()
+
+
 class Game(QWidget):
     def __init__(self):
         super().__init__()
-        self.game_board = GameBoard(15, GomokuMinimax(15, X), GomokuMinimax(15, O), self)
+        self.new_game_menu = None
+        self.game_board = GameBoard(15, Human(), GomokuMinimax(15, O), self)
         self.prompt = None
         self.player_labels = None
         self.setWindowTitle('Gomoku')
@@ -231,6 +350,13 @@ class Game(QWidget):
         self.prompt.setAlignment(Qt.AlignHCenter)
         vbox.addWidget(self.prompt)
 
+        restart_button = QPushButton('Restart')
+        restart_button.setMaximumWidth(200)
+        restart_button.setMinimumWidth(200)
+        restart_button.setFont(QFont(FONT_FAMILY, 14))
+        restart_button.clicked.connect(self.restart)
+        vbox.addWidget(restart_button)
+
         new_game_button = QPushButton('New Game')
         new_game_button.setMaximumWidth(200)
         new_game_button.setMinimumWidth(200)
@@ -254,23 +380,42 @@ class Game(QWidget):
             X: QLabel(),
             O: QLabel()
         }
-        for player in (X, O):
-            self.player_labels[player].setText(f'{symbols[player]} - {self.game_board.players[player].name}')
-            self.player_labels[player].setAlignment(Qt.AlignLeft)
-            self.player_labels[player].setFont(QFont(FONT_FAMILY, 12))
-            # self.player_labels[player].setStyleSheet(f"color: {'red' if player == X else 'blue'}")
-            vbox.addWidget(self.player_labels[player])
+        vbox.addWidget(self.player_labels[X])
+        vbox.addWidget(self.player_labels[O])
+        self.update_player_names()
 
         self.layout().addWidget(side_bar)
 
+    def restart(self):
+        self.on_new_game_menu_submitted({
+            'board_size': self.game_board.BOARD_SIZE,
+            'player1': self.game_board.players[X],
+            'player2': self.game_board.players[O]
+        })
+        self.prompt.setText('X GOES FIRST')
+
     def new_game(self):
-        game_board = GameBoard(15, GomokuMinimax(15, X), None, self)
+        self.new_game_menu = NewGameMenu()
+        self.new_game_menu.submitted.connect(self.on_new_game_menu_submitted)
+        self.new_game_menu.show()
+
+    def on_new_game_menu_submitted(self, data):
+        game_board = GameBoard(data['board_size'], data['player1'], data['player2'], self)
         if isinstance(game_board.players[X], GomokuAI):
             game_board.handle_bot()
         if self.game_board:
             self.game_board.close()
         self.layout().replaceWidget(self.game_board, game_board)
         self.game_board = game_board
+        self.prompt.setText('X GOES FIRST')
+        self.update_player_names()
+
+    def update_player_names(self):
+        for player in (X, O):
+            self.player_labels[player].setText(f'{symbols[player]} - {self.game_board.players[player].name}')
+            self.player_labels[player].setAlignment(Qt.AlignLeft)
+            self.player_labels[player].setFont(QFont(FONT_FAMILY, 12))
+            # self.player_labels[player].setStyleSheet(f"color: {'red' if player == X else 'blue'}")
 
     def quit(self):
         sys.exit(0)
