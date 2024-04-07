@@ -77,16 +77,21 @@ class GomokuMCTS(GomokuAI):
         self.player = player  # người chơi mà AI nắm giữ (X hay O)
         global THINKING_TIME  # thời gian tính toán cố định cho mỗi nước đi
         THINKING_TIME = thinking_time
+        self.simulation_count = 0  # biến đếm số lần giả lập
 
     # nhận vào một bàn cờ và tính toán nước đi tiếp theo
     def calculate_move(self, board):
+        print('Reset sim count')
+        self.simulation_count = 0
+
         # nếu bàn cờ rỗng thì trả về một nước đi ngẫu nhiên
         if is_empty(board):
             # tùy chọn đánh cách lề một số ô vì đánh gần lề không có ích
             padding = 1
             move = [random.randint(padding, len(board) - 1 - padding),
-                    random.randint(padding, len(board[0]) - 1 - padding)]
-            print(self.player, ':', move)
+                    random.randint(padding, len(board[0]) - 1 - padding),
+                    0, 0]
+            # print(self.player, ':', move)
             return move
 
         # nếu chưa có nút gốc thì khởi tạo nút gốc
@@ -124,8 +129,8 @@ class GomokuMCTS(GomokuAI):
         # sau khi hết thời gian, chọn ra nút con của nút gốc có thống kê tốt nhất làm nước đi tiếp theo
         self.root = self.root.get_best_child()
         self.root.parent = None
-        print(self.player, ':', [self.root.move[0], self.root.move[1], self.root.win_score / self.root.visits])
-        return self.root.move
+        # print(self.player, ':', [self.root.move[0], self.root.move[1], self.root.win_score / self.root.visits])
+        return [*self.root.move, score(self.root), self.simulation_count]
 
     # chọn ra một nút lá tiềm năng để phát triển
     def select(self):
@@ -147,6 +152,7 @@ class GomokuMCTS(GomokuAI):
 
     # giả lập một ván đấu hoàn chỉnh rồi trả về kết quả
     def simulate(self, node):
+        self.simulation_count += 1
         # print('simulate:', node)
         temp_state = node.clone()
         # kiểm tra trạng thái hiện tại

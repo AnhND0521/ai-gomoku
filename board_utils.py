@@ -3,6 +3,8 @@ IN_PROGRESS = -1
 DRAW = 0
 
 
+# hàm kiểm tra trạng thái hiện tại của bàn cờ
+# trả về số hiệu người chơi thắng hoặc các hằng số biểu thị hòa hay chưa kết thúc
 def check_board_status(board):
     has_empty_square = False
     for i in range(len(board)):
@@ -23,14 +25,17 @@ def check_board_status(board):
     return IN_PROGRESS if has_empty_square else DRAW
 
 
+# hàm kiểm tra xem bàn cờ có trống hay không
 def is_empty(board):
     return sum([sum(row) for row in board]) == 0
 
 
+# hàm lấy tất cả những ô còn trống trên bàn cờ
 def get_empty_positions(board):
     return [(i, j) for i in range(len(board)) for j in range(len(board[0])) if board[i][j] == 0]
 
 
+# hàm lấy những ô còn trống nằm cạnh những ô đã được đánh
 def get_potential_moves(board):
     possible_moves = []
     # duyệt cả bàn cờ
@@ -62,5 +67,6 @@ def get_potential_moves(board):
     return possible_moves
 
 
+# tạo một bản sao của mảng hai chiều chứa bàn cờ
 def clone_board(board):
     return [[board[i][j] for j in range(len(board[i]))] for i in range(len(board))]

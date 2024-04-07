@@ -17,7 +17,7 @@ class GomokuMinimax(GomokuAI):
         SIZE = board_size
         global DEEP_MAX
         DEEP_MAX = max_depth
-        print('init minimax player of', ['', 'X', 'O'][bot_mark])
+        # print('init minimax player of', ['', 'X', 'O'][bot_mark])
 
     # hàm này sẽ trả về một list là các nước đi cạnh những ô đã được đánh rồi
     # chẳng hạn như nếu bàn cờ hiện tại chỉ mới có 1 nước được đánh ở giữa bàn cờ
@@ -339,7 +339,7 @@ class GomokuMinimax(GomokuAI):
             move = [random.randint(padding, len(board) - 1 - padding),
                     random.randint(padding, len(board[0]) - 1 - padding),
                     0]
-            print(self.bot_mark, ':', move)
+            # print(self.bot_mark, ':', move)
             return move
 
         # trước tiên tìm nước đi mà có thể thắng được luôn 
