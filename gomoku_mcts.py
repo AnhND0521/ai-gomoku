@@ -10,10 +10,69 @@ WIN_SCORE = 10  # điểm thưởng cho mỗi giả lập thắng
 THINKING_TIME = 2000  # thời gian để tính toán một nước đi
 
 
+# trả lại đối thủ của player (1-X, 2-O)
+def opponent(player):
+    return 3 - player
+
+
+# chỉ số heuristic tính lợi thế của một nước đi
+def heuristic(node):
+    board = node.board
+    opp = node.player
+    player = opponent(opp)
+    (i0, j0) = node.move
+    directions = [[0, 1], [1, 1], [1, 0], [1, -1]]
+    h = 0
+
+    for d in directions:
+        line_length = 1
+        closed = 0
+        i, j = i0 - d[0], j0 - d[1]
+        try:
+            while board[i][j] == player:
+                line_length += 1
+                i -= d[0]
+                j -= d[1]
+            if board[i][j] == opp:
+                closed += 1
+        except IndexError:
+            closed += 1
+
+        i, j = i0 + d[0], j0 + d[1]
+        try:
+            while board[i][j] == player:
+                line_length += 1
+                i += d[0]
+                j += d[1]
+            if board[i][j] == opp:
+                closed += 1
+        except IndexError:
+            closed += 1
+
+        # print("line_length =", line_length)
+        # print("closed =", closed)
+
+        if line_length == 1:
+            continue
+        if closed == 0 or line_length >= 5:
+            h += line_length * line_length
+        elif closed == 1:
+            h += (line_length * line_length) >> 2
+
+    # print("heuristic =", h)
+    return h
+
+
 # chỉ số UCB1 phản ánh độ ưu tiên khi khám phá một nút (lớn nếu nút đó có thống kê tốt hoặc chưa được thăm nhiều lần)
 def ucb1(node):
-    return INF if node.visits == 0 else node.win_score / node.visits + 2 * math.sqrt(
-        math.log(node.parent.visits) / node.visits)
+    h = heuristic(node)
+    # print("1:", INF if node.visits == 0 else node.win_score / node.visits)
+    # print("2:", INF if node.visits == 0 else 2 * math.sqrt(math.log(node.parent.visits) / node.visits))
+    # print("3:", h)
+    res = h if node.visits == 0 else node.win_score / node.visits + 2 * math.sqrt(
+        math.log(node.parent.visits) / node.visits) + h / (node.visits + 1)
+    # print("res:", res)
+    return res
 
 
 # chỉ số thống kê của một nút (giống như tỷ lệ thắng)
@@ -21,11 +80,6 @@ def score(node):
     if node.visits == 0:
         return -INF  # nếu chưa thăm thì không nên chọn
     return node.win_score / node.visits
-
-
-# trả lại đối thủ của player (1-X, 2-O)
-def opponent(player):
-    return 3 - player
 
 
 # lớp đại diện cho một nút trạng thái trong cây tìm kiếm
@@ -127,7 +181,12 @@ class GomokuMCTS(GomokuAI):
             self.back_propagation(explored_node, status)
 
         # sau khi hết thời gian, chọn ra nút con của nút gốc có thống kê tốt nhất làm nước đi tiếp theo
-        self.root = self.root.get_best_child()
+        best_child = self.root.get_best_child()
+        print("1:", INF if best_child.visits == 0 else best_child.win_score / best_child.visits)
+        print("2:",
+              INF if best_child.visits == 0 else 2 * math.sqrt(math.log(best_child.parent.visits) / best_child.visits))
+        print("3:", heuristic(best_child) / (best_child.visits + 1))
+        self.root = best_child
         self.root.parent = None
         # print(self.player, ':', [self.root.move[0], self.root.move[1], self.root.win_score / self.root.visits])
         return [*self.root.move, score(self.root), self.simulation_count]

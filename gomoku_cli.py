@@ -102,11 +102,11 @@ def run_game(board_size=15, bot_x=None, bot_o=None):
 
 if __name__ == '__main__':
     board_size = 15
-    max_depth = 3
-    run_game(board_size,
-             GomokuMinimax(board_size, X, max_depth=max_depth),
-             GomokuMinimax(board_size, O, max_depth=max_depth))
-    # thinking_time = 10000
+    # max_depth = 3
     # run_game(board_size,
-    #          GomokuMCTS(X, thinking_time=thinking_time),
-    #          GomokuMCTS(O, thinking_time=thinking_time))
+    #          GomokuMinimax(board_size, X, max_depth=max_depth),
+    #          GomokuMinimax(board_size, O, max_depth=max_depth))
+    thinking_time = 5000
+    run_game(board_size,
+             GomokuMCTS(X, thinking_time=thinking_time),
+             GomokuMCTS(O, thinking_time=thinking_time))
