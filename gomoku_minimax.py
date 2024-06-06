@@ -346,13 +346,13 @@ class GomokuMinimax(GomokuAI):
         move = self.search_winning_move(board, True)
         # nếu có thì trả về
         if move != 0:
-            print(self.bot_mark, ':', move)
+            # print(self.bot_mark, ':', move)
             return move
         # nếu không thì thực hiện tìm kiếm minimax
         else:
             move = self.minimax(board, 0, True, -1, WINNING_SCORE)
             if move != 0:
-                print(self.bot_mark, ':', move)
+                # print(self.bot_mark, ':', move)
                 return move
         return 0
 

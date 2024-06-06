@@ -231,13 +231,13 @@ class NewGameMenu(QWidget):
         self.minimax_depth_field_1.setVisible(False)
         layout.addRow(self.minimax_depth_label_1, self.minimax_depth_field_1)
 
-        self.mcts_thinking_time_label_1 = QLabel('Thinking time (ms)')
-        self.mcts_thinking_time_label_1.setVisible(False)
-        self.mcts_thinking_time_field_1 = QSpinBox()
-        self.mcts_thinking_time_field_1.setRange(1, 1000000)
-        self.mcts_thinking_time_field_1.setValue(2000)
-        self.mcts_thinking_time_field_1.setVisible(False)
-        layout.addRow(self.mcts_thinking_time_label_1, self.mcts_thinking_time_field_1)
+        self.mcts_max_sim_label_1 = QLabel('Max simulations per step')
+        self.mcts_max_sim_label_1.setVisible(False)
+        self.mcts_max_sim_field_1 = QSpinBox()
+        self.mcts_max_sim_field_1.setRange(1, 1000000)
+        self.mcts_max_sim_field_1.setValue(2000)
+        self.mcts_max_sim_field_1.setVisible(False)
+        layout.addRow(self.mcts_max_sim_label_1, self.mcts_max_sim_field_1)
 
         player2_label = QLabel('Player 2')
         self.player2_field = QComboBox()
@@ -253,13 +253,13 @@ class NewGameMenu(QWidget):
         self.minimax_depth_field_2.setVisible(False)
         layout.addRow(self.minimax_depth_label_2, self.minimax_depth_field_2)
 
-        self.mcts_thinking_time_label_2 = QLabel('Thinking time (ms)')
-        self.mcts_thinking_time_label_2.setVisible(False)
-        self.mcts_thinking_time_field_2 = QSpinBox()
-        self.mcts_thinking_time_field_2.setRange(1, 1000000)
-        self.mcts_thinking_time_field_2.setValue(2000)
-        self.mcts_thinking_time_field_2.setVisible(False)
-        layout.addRow(self.mcts_thinking_time_label_2, self.mcts_thinking_time_field_2)
+        self.mcts_max_sim_label_2 = QLabel('Max simulations per step')
+        self.mcts_max_sim_label_2.setVisible(False)
+        self.mcts_max_sim_field_2 = QSpinBox()
+        self.mcts_max_sim_field_2.setRange(1, 1000000)
+        self.mcts_max_sim_field_2.setValue(2000)
+        self.mcts_max_sim_field_2.setVisible(False)
+        layout.addRow(self.mcts_max_sim_label_2, self.mcts_max_sim_field_2)
 
         self.start_button = QPushButton('Start')
         self.start_button.clicked.connect(self.on_start_button_clicked)
@@ -272,14 +272,14 @@ class NewGameMenu(QWidget):
     def on_player1_changed(self, index):
         self.minimax_depth_label_1.setVisible(index == 1)
         self.minimax_depth_field_1.setVisible(index == 1)
-        self.mcts_thinking_time_label_1.setVisible(index == 2)
-        self.mcts_thinking_time_field_1.setVisible(index == 2)
+        self.mcts_max_sim_label_1.setVisible(index == 2)
+        self.mcts_max_sim_field_1.setVisible(index == 2)
 
     def on_player2_changed(self, index):
         self.minimax_depth_label_2.setVisible(index == 1)
         self.minimax_depth_field_2.setVisible(index == 1)
-        self.mcts_thinking_time_label_2.setVisible(index == 2)
-        self.mcts_thinking_time_field_2.setVisible(index == 2)
+        self.mcts_max_sim_label_2.setVisible(index == 2)
+        self.mcts_max_sim_field_2.setVisible(index == 2)
 
     def on_start_button_clicked(self):
         board_size = int(self.board_size_field.text())
@@ -301,8 +301,8 @@ class NewGameMenu(QWidget):
             # message_box.setIcon(QMessageBox.Information)
             # message_box.exec_()
             # return
-            thinking_time = self.mcts_thinking_time_field_1.value()
-            data['player1'] = GomokuMCTS(X, thinking_time)
+            max_sim = self.mcts_max_sim_field_1.value()
+            data['player1'] = GomokuMCTS(X, max_sim)
 
         player2_index = self.player2_field.currentIndex()
         if player2_index == 0:
@@ -316,8 +316,8 @@ class NewGameMenu(QWidget):
             # message_box.setIcon(QMessageBox.Information)
             # message_box.exec_()
             # return
-            thinking_time = self.mcts_thinking_time_field_2.value()
-            data['player2'] = GomokuMCTS(O, thinking_time)
+            max_sim = self.mcts_max_sim_field_2.value()
+            data['player2'] = GomokuMCTS(O, max_sim)
 
         print(data)
         self.submitted.emit(data)
@@ -329,8 +329,8 @@ class Game(QWidget):
         super().__init__()
         self.new_game_menu = None
         self.game_board = GameBoard(DEFAULT_BOARD_SIZE,
-                                    GomokuMCTS(X, thinking_time=5000),
-                                    GomokuMinimax(DEFAULT_BOARD_SIZE, O), self)
+                                    GomokuMCTS(X, simulations_per_step=1200),
+                                    GomokuMinimax(DEFAULT_BOARD_SIZE, O, max_depth=2), self)
         self.prompt = None
         self.player_labels = None
         self.setWindowTitle('Gomoku')

@@ -8,6 +8,7 @@ from gomoku_model import GomokuAI
 INF = 2 ** 32 - 1
 WIN_SCORE = 10  # điểm thưởng cho mỗi giả lập thắng
 THINKING_TIME = 2000  # thời gian để tính toán một nước đi
+SIMULATION_COUNT = 1000
 
 
 # trả lại đối thủ của player (1-X, 2-O)
@@ -65,12 +66,11 @@ def heuristic(node):
 
 # chỉ số UCB1 phản ánh độ ưu tiên khi khám phá một nút (lớn nếu nút đó có thống kê tốt hoặc chưa được thăm nhiều lần)
 def ucb1(node):
-    h = heuristic(node)
     # print("1:", INF if node.visits == 0 else node.win_score / node.visits)
     # print("2:", INF if node.visits == 0 else 2 * math.sqrt(math.log(node.parent.visits) / node.visits))
     # print("3:", h)
-    res = h if node.visits == 0 else node.win_score / node.visits + 2 * math.sqrt(
-        math.log(node.parent.visits) / node.visits) + h / (node.visits + 1)
+    res = INF if node.visits == 0 else node.win_score / node.visits + 2 * math.sqrt(
+        math.log(node.parent.visits) / node.visits)
     # print("res:", res)
     return res
 
@@ -125,17 +125,19 @@ class State:
 
 # lớp đại diện cho thuật toán MCTS
 class GomokuMCTS(GomokuAI):
-    def __init__(self, player, thinking_time=5000):
+    def __init__(self, player, simulations_per_step=1000):
         self.name = "MCTS"
         self.root = None  # nút gốc
         self.player = player  # người chơi mà AI nắm giữ (X hay O)
-        global THINKING_TIME  # thời gian tính toán cố định cho mỗi nước đi
-        THINKING_TIME = thinking_time
+        # global THINKING_TIME  # thời gian tính toán cố định cho mỗi nước đi
+        # THINKING_TIME = thinking_time
+        global SIMULATION_COUNT
+        SIMULATION_COUNT = simulations_per_step
+
         self.simulation_count = 0  # biến đếm số lần giả lập
 
     # nhận vào một bàn cờ và tính toán nước đi tiếp theo
     def calculate_move(self, board):
-        print('Reset sim count')
         self.simulation_count = 0
 
         # nếu bàn cờ rỗng thì trả về một nước đi ngẫu nhiên
@@ -163,9 +165,10 @@ class GomokuMCTS(GomokuAI):
                 self.root = find_result[0]
                 self.root.parent = None
 
-        start_time = time.perf_counter()
+        # start_time = time.perf_counter()
         # lặp lại quá trình tính toán cho đến khi hết thời gian chỉ định
-        while int(round((time.perf_counter() - start_time) * 1000)) <= THINKING_TIME:
+        # while int(round((time.perf_counter() - start_time) * 1000)) <= THINKING_TIME:
+        while self.simulation_count < SIMULATION_COUNT:
             # chọn ra một nút lá tiềm năng để phát triển
             selected_node = self.select()
             if check_board_status(selected_node.board) == IN_PROGRESS:
@@ -182,10 +185,6 @@ class GomokuMCTS(GomokuAI):
 
         # sau khi hết thời gian, chọn ra nút con của nút gốc có thống kê tốt nhất làm nước đi tiếp theo
         best_child = self.root.get_best_child()
-        print("1:", INF if best_child.visits == 0 else best_child.win_score / best_child.visits)
-        print("2:",
-              INF if best_child.visits == 0 else 2 * math.sqrt(math.log(best_child.parent.visits) / best_child.visits))
-        print("3:", heuristic(best_child) / (best_child.visits + 1))
         self.root = best_child
         self.root.parent = None
         # print(self.player, ':', [self.root.move[0], self.root.move[1], self.root.win_score / self.root.visits])
